@@ -6,22 +6,26 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// 🔒 USE TESTE PRA NÃO COBRAR DINHEIRO REAL
-const stripe = new Stripe("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");
+// 🔒 USE CHAVE DE TESTE (sk_test_)
+const stripe = new Stripe("sk_test_51THExkRvmbU87f0WtYwUoGxLmUcJzpdIVb2kn0PgjwugVf9PdMaRdUDt9cihT4j4Tq0PxNFwGH5tXq0TIZ7fv4AG0045Aj6xci");
 
 app.post("/create-checkout", async (req, res) => {
   const { amount, type, hours } = req.body;
 
-  if (!amount || amount < 1) {
-    return res.status(400).json({ error: "Invalid amount" });
+  // 🔍 validação básica
+  if (!amount || amount < 5 || amount > 500) {
+    return res.status(400).json({ error: "Valor inválido ($5 - $500)" });
   }
 
   try {
     let productName = "Lion Notifier Balance";
 
     if (type === "plan") {
-      productName = `Plan Purchase (${hours}h)`;
+      productName = `Lion Notifier Plan (${hours}h)`;
     }
+
+    // 💵 converter dólar → centavos (Stripe exige isso)
+    const amountInCents = Math.round(Number(amount) * 100);
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -33,7 +37,7 @@ app.post("/create-checkout", async (req, res) => {
             product_data: {
               name: productName,
             },
-            unit_amount: Math.round(amount * 100),
+            unit_amount: amountInCents,
           },
           quantity: 1,
         },
@@ -41,6 +45,7 @@ app.post("/create-checkout", async (req, res) => {
 
       mode: "payment",
 
+      // 🔥 IMPORTANTE (para atualizar saldo depois)
       success_url:
         "https://mateusduolingo72-a11y.github.io/mateus.github.io/?success=true",
 
@@ -56,8 +61,12 @@ app.post("/create-checkout", async (req, res) => {
   }
 });
 
+// rota teste
 app.get("/", (req, res) => {
   res.send("Server online 🚀");
 });
 
-app.listen(3000, () => console.log("Server rodando"));
+// porta do Render
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => console.log("Server rodando na porta " + PORT));
