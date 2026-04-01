@@ -885,8 +885,25 @@
     });
 
     const methodButtons = document.querySelectorAll(".method-btn");
-    const payBtn = document.getElementById("payBtn");
-    let selectedMethod = "card";
+    const payBtn = document.getElementById("payBtn").addEventListener("click", async () => {
+  const amount = document.getElementById("amountInput").value;
+
+  if (!amount || amount < 5) {
+    alert("Valor mínimo $5");
+    return;
+  }
+
+  const res = await fetch("https://mateus-github-io.onrender.com/create-checkout", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ amount })
+  });
+
+  const data = await res.json();
+  window.location.href = data.url;
+});
 
     methodButtons.forEach(button => {
       button.addEventListener("click", () => {
