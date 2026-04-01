@@ -1,130 +1,1111 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lion Notifier</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lion Notifier</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-<style>
-body {
-    margin: 0;
-    font-family: Arial;
-    background: #0b0b0b;
-    color: white;
-    text-align: center;
-}
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(255, 166, 0, 0.18), transparent 22%),
+        linear-gradient(90deg, #05070d 0%, #07101b 50%, #05070d 100%);
+      color: #fff;
+      min-height: 100vh;
+    }
 
-header {
-    padding: 40px;
-}
+    .top-strip {
+      display: flex;
+      gap: 18px;
+      overflow-x: auto;
+      padding: 12px 18px;
+      border-bottom: 1px solid rgba(255, 170, 0, 0.25);
+      background: rgba(0, 0, 0, 0.35);
+      scrollbar-width: thin;
+    }
 
-h1 {
-    color: gold;
-    font-size: 40px;
-}
+    .strip-item {
+      min-width: 90px;
+      text-align: center;
+      font-size: 11px;
+      color: #d5d5d5;
+      opacity: 0.95;
+    }
 
-.btn {
-    background: #5865F2;
-    padding: 15px 25px;
-    border-radius: 8px;
-    color: white;
-    text-decoration: none;
-    display: inline-block;
-    margin-top: 20px;
-    cursor: pointer;
-}
+    .strip-item .value {
+      display: block;
+      margin-top: 4px;
+      color: #f3a81f;
+      font-weight: bold;
+    }
 
-.section {
-    padding: 50px;
-}
+    .nav-wrap {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 22px;
+      border-bottom: 1px solid rgba(255, 170, 0, 0.16);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(10px);
+      background: rgba(6, 8, 14, 0.88);
+    }
 
-.card {
-    background: #1a1a1a;
-    padding: 20px;
-    margin: 15px;
-    border-radius: 10px;
-}
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
 
-.payment-btn {
-    background: #ff8c00;
-    margin: 10px;
-}
-</style>
-</head>
+    .brand .lion {
+      font-size: 28px;
+    }
 
-<body>
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1;
+    }
 
-<header>
-<h1>🦁 Lion Notifier</h1>
-<p>Auto server detection for Roblox brainrot hunting</p>
+    .brand-text span:first-child {
+      color: #ffae1f;
+      font-size: 24px;
+    }
 
-<!-- Botão de login avançado Discord -->
-<a class="btn" id="discord-login" href="#">Login with Discord</a>
-<p id="user-info"></p>
-</header>
+    .brand-text span:last-child {
+      color: #c9c9c9;
+      font-size: 12px;
+      margin-top: 4px;
+      letter-spacing: 1.6px;
+    }
 
-<div class="section">
-<h2>Plans</h2>
+    .nav-center {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
 
-<div class="card">
-<h3>Basic</h3>
-<p>$5</p>
-<button class="btn payment-btn" onclick="payStripe('basic')">Pay with Card</button>
-<a class="btn payment-btn" href="https://commerce.coinbase.com/checkout/SUA_CHAVE_BASIC" target="_blank">Pay with Crypto</a>
-</div>
+    .nav-btn {
+      border: 1px solid rgba(255, 176, 32, 0.18);
+      background: #0d1220;
+      color: #cfcfcf;
+      padding: 10px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+      font-weight: 600;
+    }
 
-<div class="card">
-<h3>Pro</h3>
-<p>$10</p>
-<button class="btn payment-btn" onclick="payStripe('pro')">Pay with Card</button>
-<a class="btn payment-btn" href="https://commerce.coinbase.com/checkout/SUA_CHAVE_PRO" target="_blank">Pay with Crypto</a>
-</div>
+    .nav-btn.active,
+    .nav-btn:hover {
+      background: linear-gradient(180deg, #ffbe3d, #e59b17);
+      color: #111;
+      border-color: #ffbe3d;
+    }
 
-<div class="card">
-<h3>Ultimate</h3>
-<p>$20</p>
-<button class="btn payment-btn" onclick="payStripe('ultimate')">Pay with Card</button>
-<a class="btn payment-btn" href="https://commerce.coinbase.com/checkout/SUA_CHAVE_ULTIMATE" target="_blank">Pay with Crypto</a>
-</div>
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+    }
 
-</div>
+    .badge {
+      border: 1px solid rgba(255, 176, 32, 0.22);
+      background: #101726;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+    }
 
-<script>
-  // ==== LOGIN DISCORD OAUTH2 ====
-  const clientId = "SEU_CLIENT_ID_AQUI"; // coloque o Client ID do seu app Discord
-  const redirectUri = encodeURIComponent(window.location.href.split('#')[0]); // redireciona para a mesma página
-  const scope = "identify email";
-  const discordLoginUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}`;
+    .badge.gold {
+      color: #ffb01f;
+      font-weight: 700;
+    }
 
-  document.getElementById("discord-login").href = discordLoginUrl;
+    .badge.red {
+      color: #ff5555;
+      font-weight: 700;
+    }
 
-  // Captura o token do Discord e pega dados do usuário
-  window.onload = () => {
-    const hash = window.location.hash;
-    if(hash) {
-      const params = new URLSearchParams(hash.replace("#", "?"));
-      const token = params.get("access_token");
-      if(token) {
-        // Pega dados do usuário com o token
-        fetch("https://discord.com/api/users/@me", {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        })
-        .then(res => res.json())
-        .then(user => {
-          document.getElementById("user-info").innerText = `Olá, ${user.username}#${user.discriminator} (ID: ${user.id})`;
-        })
-        .catch(err => console.error(err));
+    .profile-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #0e1524;
+      border: 1px solid rgba(255, 176, 32, 0.18);
+      padding: 6px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      color: white;
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #ffb01f;
+    }
+
+    .dropdown {
+      position: absolute;
+      top: 56px;
+      right: 0;
+      width: 260px;
+      background: #09101b;
+      border: 1px solid rgba(255, 176, 32, 0.18);
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+      display: none;
+      overflow: hidden;
+    }
+
+    .dropdown.show {
+      display: block;
+    }
+
+    .dropdown-header {
+      padding: 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .dropdown-header .name {
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .dropdown-header .sub {
+      color: #9aa3b2;
+      margin-top: 6px;
+      font-size: 13px;
+      word-break: break-all;
+    }
+
+    .dropdown-item {
+      padding: 14px;
+      border: 0;
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      color: white;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .dropdown-item:hover {
+      background: rgba(255,255,255,0.04);
+    }
+
+    .dropdown-item.signout {
+      color: #ff6565;
+    }
+
+    .container {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 34px 18px 80px;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      color: #f7a81c;
+      font-size: 62px;
+      letter-spacing: 1px;
+    }
+
+    .hero p {
+      margin-top: 10px;
+      color: #9ca3af;
+      font-size: 18px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(9,15,28,0.95), rgba(7,12,22,0.95));
+      border: 1px solid rgba(255, 176, 32, 0.18);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.015) inset;
+    }
+
+    .label {
+      color: #8e97a7;
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .big-value {
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    .danger {
+      color: #ff4c4c;
+    }
+
+    .warning {
+      color: #ffb01f;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .status-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(90, 0, 20, 0.32);
+      border: 1px solid rgba(255, 90, 90, 0.18);
+      padding: 18px;
+      border-radius: 14px;
+      margin-bottom: 18px;
+    }
+
+    .status-pill {
+      background: rgba(255, 60, 60, 0.16);
+      color: #ff4d4d;
+      border: 1px solid rgba(255, 60, 60, 0.18);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .mini-box {
+      border: 1px solid rgba(255,176,32,0.16);
+      border-radius: 14px;
+      padding: 18px;
+      background: rgba(255,255,255,0.015);
+    }
+
+    .mini-box .small {
+      color: #8e97a7;
+      font-size: 12px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .mini-box .num {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .payment-methods {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .method {
+      border: 1px solid rgba(255,176,32,0.24);
+      background: #101726;
+      color: white;
+      border-radius: 14px;
+      padding: 16px 10px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .method.active {
+      background: rgba(255,176,32,0.12);
+      box-shadow: 0 0 0 1px #ffb01f inset;
+    }
+
+    .field {
+      width: 100%;
+      background: #0d1423;
+      border: 1px solid rgba(255,255,255,0.08);
+      color: white;
+      border-radius: 12px;
+      padding: 14px 14px;
+      outline: none;
+      margin-top: 8px;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .apply-btn,
+    .primary-btn,
+    .secondary-btn,
+    .discord-btn {
+      border: 0;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .apply-btn {
+      background: #1a2232;
+      color: white;
+      padding: 0 18px;
+      min-width: 90px;
+    }
+
+    .primary-btn {
+      width: 100%;
+      margin-top: 14px;
+      padding: 16px;
+      background: linear-gradient(180deg, #d99b22, #b97a0c);
+      color: #111;
+      font-size: 16px;
+    }
+
+    .secondary-btn {
+      padding: 12px 16px;
+      background: #121b2b;
+      color: white;
+      border: 1px solid rgba(255,176,32,0.18);
+    }
+
+    .discord-btn {
+      background: #5865F2;
+      color: white;
+      padding: 14px 20px;
+      font-size: 16px;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 14px;
+    }
+
+    .table-card {
+      margin-top: 18px;
+    }
+
+    .table-title {
+      font-size: 24px;
+      color: #f7a81c;
+      margin-bottom: 14px;
+      text-align: center;
+      font-weight: 800;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 16px;
+    }
+
+    th, td {
+      padding: 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      color: #9aa3b2;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .green {
+      color: #18d27e;
+      font-weight: 700;
+    }
+
+    .settings-wrap {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .settings-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .settings-tab {
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,176,32,0.14);
+      background: #11192a;
+      color: white;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .settings-tab.active {
+      background: rgba(255,176,32,0.12);
+      color: #ffb01f;
+    }
+
+    .settings-panel {
+      display: none;
+    }
+
+    .settings-panel.active {
+      display: block;
+    }
+
+    .switch-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 16px;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.015);
+    }
+
+    .toggle {
+      position: relative;
+      width: 52px;
+      height: 28px;
+      background: #394150;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .toggle::after {
+      content: "";
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      top: 3px;
+      left: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: 0.2s;
+    }
+
+    .toggle.active {
+      background: #d99b22;
+    }
+
+    .toggle.active::after {
+      left: 27px;
+    }
+
+    .muted {
+      color: #8e97a7;
+      font-size: 13px;
+    }
+
+    @media (max-width: 980px) {
+      .stats-grid,
+      .grid-2,
+      .payment-methods {
+        grid-template-columns: 1fr;
+      }
+
+      .nav-wrap {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .nav-right {
+        justify-content: center;
+      }
+
+      .hero h1 {
+        font-size: 42px;
       }
     }
-  };
+  </style>
+</head>
+<body>
+  <div class="top-strip">
+    <div class="strip-item">Golden Bottle<span class="value">50.0M</span></div>
+    <div class="strip-item">Lion Token<span class="value">42.5M</span></div>
+    <div class="strip-item">Secret Combo<span class="value">1.0B</span></div>
+    <div class="strip-item">Rare Drop<span class="value">156.2M</span></div>
+    <div class="strip-item">Dragon Signal<span class="value">3.0B</span></div>
+    <div class="strip-item">Notifier Pass<span class="value">775.0M</span></div>
+    <div class="strip-item">Premium Slot<span class="value">62.5M</span></div>
+    <div class="strip-item">Golden Bottle<span class="value">50.0M</span></div>
+    <div class="strip-item">Lion Token<span class="value">42.5M</span></div>
+    <div class="strip-item">Secret Combo<span class="value">1.0B</span></div>
+  </div>
 
-  // ==== BOTÃO DE PAGAMENTO SIMULADO STRIPE ====
-  function payStripe(plan) {
-    alert(`Botão Stripe clicado para o plano: ${plan}. Para pagamentos reais, você precisa de um backend Stripe.`);
-  }
-</script>
+  <div class="nav-wrap">
+    <div class="brand">
+      <div class="lion">🦁</div>
+      <div class="brand-text">
+        <span>LION</span>
+        <span>NOTIFIER</span>
+      </div>
+    </div>
 
+    <div class="nav-center">
+      <button class="nav-btn active" data-page="dashboard">Dashboard</button>
+      <button class="nav-btn" data-page="purchase">Purchase</button>
+      <button class="nav-btn" data-page="orders">Orders</button>
+      <button class="nav-btn" data-page="settings">Settings</button>
+    </div>
+
+    <div class="nav-right">
+      <div class="badge gold" id="balanceBadge">$9.19</div>
+      <div class="badge red" id="planBadge">NO ACTIVE PLAN</div>
+
+      <button class="profile-btn" id="profileBtn" style="display:none;">
+        <img id="profileAvatar" class="avatar" src="" alt="avatar">
+        <span id="profileName">User</span>
+      </button>
+
+      <a class="discord-btn" id="loginBtn" href="/auth/discord">Login with Discord</a>
+
+      <div class="dropdown" id="profileDropdown">
+        <div class="dropdown-header">
+          <div class="name" id="dropdownName">User</div>
+          <div class="sub" id="dropdownId">Discord ID: -</div>
+        </div>
+        <button class="dropdown-item" id="copyIdBtn">Copy User ID</button>
+        <button class="dropdown-item signout" id="logoutBtn">Sign Out</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <section class="page active" id="page-dashboard">
+      <div class="hero">
+        <h1>DASHBOARD</h1>
+        <p>Manage your plan and balance</p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="card">
+          <div class="label">Status</div>
+          <div class="big-value danger" id="statusText">INACTIVE</div>
+        </div>
+        <div class="card">
+          <div class="label">Time Left</div>
+          <div class="big-value warning" id="timeLeftText">Expired</div>
+        </div>
+        <div class="card">
+          <div class="label">Expires</div>
+          <div class="big-value" id="expiresText">--</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h2 style="margin-top:0;">Subscription</h2>
+          <div class="muted">Current plan status</div>
+
+          <div class="status-banner">
+            <div>
+              <div style="font-weight:800; font-size:20px;" id="currentPlanText">NO PLAN</div>
+              <div class="muted" style="margin-top:6px;">Purchase a subscription to access the notifier</div>
+            </div>
+            <div class="status-pill" id="subscriptionBadge">INACTIVE</div>
+          </div>
+
+          <div class="mini-grid">
+            <div class="mini-box">
+              <div class="small">Remaining</div>
+              <div class="num" id="remainingText">0h 0m</div>
+            </div>
+            <div class="mini-box">
+              <div class="small">Spent</div>
+              <div class="num" id="spentText">$12.00</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 style="margin-top:0;">Add Balance</h2>
+          <div class="muted">Card, Crypto, or PIX</div>
+
+          <div class="payment-methods">
+            <button class="method active" data-method="card">Card</button>
+            <button class="method" data-method="crypto">Crypto</button>
+            <button class="method" data-method="pix">PIX</button>
+          </div>
+
+          <label class="muted">Amount (USD)</label>
+          <input class="field" id="amountInput" type="number" min="5" max="500" placeholder="Enter amount ($5 - $500)" />
+
+          <div class="muted" style="margin-top:8px;">Min $5 · Max $500</div>
+
+          <div class="row">
+            <input class="field" id="promoInput" type="text" placeholder="Enter promo code (optional)" style="margin-top:0;" />
+            <button class="apply-btn" id="applyPromoBtn">Apply</button>
+          </div>
+
+          <button class="primary-btn" id="payBtn">Pay with Card</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-purchase">
+      <div class="hero">
+        <h1>PURCHASE PLAN</h1>
+        <p>Get access to the notifier</p>
+      </div>
+
+      <div class="settings-wrap">
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+            <div>
+              <div class="label">No Delay Plan</div>
+              <div style="font-size:22px; font-weight:800;">Instant notifications access</div>
+            </div>
+            <div style="font-size:34px; font-weight:800; color:#3ee58c;">$6<span style="font-size:14px; color:#9aa3b2;"> / hour</span></div>
+          </div>
+
+          <div class="mini-grid" style="margin-top:18px;">
+            <div class="mini-box">
+              <div class="small">12h Deal</div>
+              <div class="num">$60</div>
+            </div>
+            <div class="mini-box">
+              <div class="small">24h Deal</div>
+              <div class="num">$120</div>
+            </div>
+          </div>
+
+          <div class="row" style="align-items:center; margin-top:18px;">
+            <button class="secondary-btn" id="minusHours">-</button>
+            <input class="field" id="hoursInput" type="number" min="1" value="3" style="max-width:120px; margin-top:0;" />
+            <button class="secondary-btn" id="plusHours">+</button>
+            <div class="muted" id="hoursRangeText">(1-240)</div>
+          </div>
+
+          <div class="card" style="margin-top:18px; padding:18px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+              <span class="muted">Duration</span>
+              <strong id="durationValue">3h</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+              <span class="muted">Rate</span>
+              <strong>$6/h</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:24px; font-weight:800; color:#3ee58c;">
+              <span>Total</span>
+              <span id="purchaseTotal">$18.00</span>
+            </div>
+          </div>
+
+          <button class="primary-btn" id="purchaseBtn">Purchase Plan</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-orders">
+      <div class="hero">
+        <h1>PAYMENT HISTORY</h1>
+        <p>View your deposit transactions</p>
+      </div>
+
+      <div class="card table-card">
+        <div class="row" style="margin-top:0;">
+          <input class="field" id="searchOrderInput" type="text" placeholder="Search by payment ID..." style="margin-top:0;" />
+          <button class="secondary-btn" id="filterStatusBtn">All Status</button>
+        </div>
+
+        <table style="margin-top:18px;">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Method</th>
+              <th>Status</th>
+              <th>Amount</th>
+              <th>Payment ID</th>
+            </tr>
+          </thead>
+          <tbody id="ordersTableBody">
+            <tr>
+              <td>Balance Deposit</td>
+              <td>Card / Apple Pay</td>
+              <td class="green">Confirmed</td>
+              <td>$5.00</td>
+              <td>txn_demo_001</td>
+            </tr>
+            <tr>
+              <td>Balance Deposit</td>
+              <td>Crypto</td>
+              <td class="green">Confirmed</td>
+              <td>$18.00</td>
+              <td>txn_demo_002</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="page" id="page-settings">
+      <div class="hero">
+        <h1>NOTIFIER SETTINGS</h1>
+        <p>Configure your in-game notifier preferences</p>
+      </div>
+
+      <div class="settings-wrap">
+        <div class="settings-tabs">
+          <button class="settings-tab active" data-settings="general">General</button>
+          <button class="settings-tab" data-settings="filters">Filters</button>
+          <button class="settings-tab" data-settings="rarities">Rarities</button>
+        </div>
+
+        <div class="card settings-panel active" id="panel-general">
+          <h3 style="margin-top:0;">General Settings</h3>
+
+          <label class="muted">Minimum Generation</label>
+          <input class="field" type="number" value="100" />
+
+          <label class="muted" style="display:block; margin-top:14px;">Maximum Generation</label>
+          <input class="field" type="number" value="1000" />
+
+          <label class="muted" style="display:block; margin-top:14px;">Sound ID (optional)</label>
+          <input class="field" type="text" value="g_5476780718" />
+
+          <div class="switch-row">
+            <div>
+              <div style="font-weight:700;">Auto Join</div>
+              <div class="muted">Automatically join matching servers</div>
+            </div>
+            <div class="toggle active"></div>
+          </div>
+
+          <div class="switch-row">
+            <div>
+              <div style="font-weight:700;">Ignore In-Duel</div>
+              <div class="muted">Hide brainrots currently in duel</div>
+            </div>
+            <div class="toggle active"></div>
+          </div>
+
+          <button class="primary-btn" style="max-width:220px; margin:20px auto 0; display:block;">Save Settings</button>
+        </div>
+
+        <div class="card settings-panel" id="panel-filters">
+          <h3 style="margin-top:0;">Filters</h3>
+          <label class="muted">Keyword Filter</label>
+          <input class="field" type="text" placeholder="Example: rare, dragon, gold" />
+
+          <label class="muted" style="display:block; margin-top:14px;">Minimum Value</label>
+          <input class="field" type="number" value="50" />
+
+          <button class="primary-btn" style="max-width:220px; margin:20px auto 0; display:block;">Save Filters</button>
+        </div>
+
+        <div class="card settings-panel" id="panel-rarities">
+          <h3 style="margin-top:0;">Rarities</h3>
+          <div class="switch-row">
+            <div>
+              <div style="font-weight:700;">Legendary</div>
+              <div class="muted">Receive alerts for legendary finds</div>
+            </div>
+            <div class="toggle active"></div>
+          </div>
+          <div class="switch-row">
+            <div>
+              <div style="font-weight:700;">Mythic</div>
+              <div class="muted">Receive alerts for mythic finds</div>
+            </div>
+            <div class="toggle active"></div>
+          </div>
+          <div class="switch-row">
+            <div>
+              <div style="font-weight:700;">Secret</div>
+              <div class="muted">Receive alerts for secret finds</div>
+            </div>
+            <div class="toggle"></div>
+          </div>
+
+          <button class="primary-btn" style="max-width:220px; margin:20px auto 0; display:block;">Save Rarities</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const navButtons = document.querySelectorAll(".nav-btn");
+    const pages = document.querySelectorAll(".page");
+
+    navButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        navButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        const page = btn.dataset.page;
+        pages.forEach(p => p.classList.remove("active"));
+        document.getElementById("page-" + page).classList.add("active");
+      });
+    });
+
+    const methods = document.querySelectorAll(".method");
+    const payBtn = document.getElementById("payBtn");
+    let selectedMethod = "card";
+
+    methods.forEach(method => {
+      method.addEventListener("click", () => {
+        methods.forEach(m => m.classList.remove("active"));
+        method.classList.add("active");
+        selectedMethod = method.dataset.method;
+
+        if (selectedMethod === "card") payBtn.textContent = "Pay with Card";
+        if (selectedMethod === "crypto") payBtn.textContent = "Pay with Crypto";
+        if (selectedMethod === "pix") payBtn.textContent = "Pay with PIX";
+      });
+    });
+
+    document.getElementById("applyPromoBtn").addEventListener("click", () => {
+      const promo = document.getElementById("promoInput").value.trim();
+      alert(promo ? `Promo applied: ${promo}` : "Enter a promo code first.");
+    });
+
+    document.getElementById("payBtn").addEventListener("click", async () => {
+      const amount = Number(document.getElementById("amountInput").value);
+      const promo = document.getElementById("promoInput").value.trim();
+
+      if (!amount || amount < 5 || amount > 500) {
+        alert("Enter an amount between $5 and $500.");
+        return;
+      }
+
+      const endpointMap = {
+        card: "/api/pay/card",
+        crypto: "/api/pay/crypto",
+        pix: "/api/pay/pix"
+      };
+
+      try {
+        const res = await fetch(endpointMap[selectedMethod], {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ amount, promo })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert(data.error || "Payment error.");
+          return;
+        }
+
+        if (data.url) {
+          window.location.href = data.url;
+          return;
+        }
+
+        alert("Payment created successfully.");
+      } catch (err) {
+        alert("Payment endpoint not connected yet.");
+      }
+    });
+
+    const hoursInput = document.getElementById("hoursInput");
+    const purchaseTotal = document.getElementById("purchaseTotal");
+    const durationValue = document.getElementById("durationValue");
+    const ratePerHour = 6;
+
+    function updatePurchaseTotal() {
+      let hours = Number(hoursInput.value) || 1;
+      if (hours < 1) hours = 1;
+      if (hours > 240) hours = 240;
+      hoursInput.value = hours;
+      durationValue.textContent = hours + "h";
+      purchaseTotal.textContent = "$" + (hours * ratePerHour).toFixed(2);
+    }
+
+    document.getElementById("minusHours").addEventListener("click", () => {
+      hoursInput.value = Math.max(1, Number(hoursInput.value || 1) - 1);
+      updatePurchaseTotal();
+    });
+
+    document.getElementById("plusHours").addEventListener("click", () => {
+      hoursInput.value = Math.min(240, Number(hoursInput.value || 1) + 1);
+      updatePurchaseTotal();
+    });
+
+    hoursInput.addEventListener("input", updatePurchaseTotal);
+    updatePurchaseTotal();
+
+    document.getElementById("purchaseBtn").addEventListener("click", async () => {
+      const hours = Number(hoursInput.value) || 1;
+
+      try {
+        const res = await fetch("/api/purchase/plan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ hours })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert(data.error || "Purchase error.");
+          return;
+        }
+
+        if (data.url) {
+          window.location.href = data.url;
+          return;
+        }
+
+        alert("Plan purchase created.");
+      } catch (err) {
+        alert("Purchase endpoint not connected yet.");
+      }
+    });
+
+    const settingsTabs = document.querySelectorAll(".settings-tab");
+    const settingsPanels = document.querySelectorAll(".settings-panel");
+
+    settingsTabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        settingsTabs.forEach(t => t.classList.remove("active"));
+        settingsPanels.forEach(p => p.classList.remove("active"));
+        tab.classList.add("active");
+        document.getElementById("panel-" + tab.dataset.settings).classList.add("active");
+      });
+    });
+
+    document.querySelectorAll(".toggle").forEach(toggle => {
+      toggle.addEventListener("click", () => {
+        toggle.classList.toggle("active");
+      });
+    });
+
+    const profileBtn = document.getElementById("profileBtn");
+    const profileDropdown = document.getElementById("profileDropdown");
+
+    profileBtn.addEventListener("click", () => {
+      profileDropdown.classList.toggle("show");
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+        profileDropdown.classList.remove("show");
+      }
+    });
+
+    document.getElementById("copyIdBtn").addEventListener("click", async () => {
+      const userId = document.getElementById("dropdownId").dataset.userid || "";
+      if (!userId) return alert("No user ID found.");
+      await navigator.clipboard.writeText(userId);
+      alert("User ID copied.");
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await fetch("/auth/logout", {
+        method: "POST",
+        credentials: "include"
+      });
+      location.reload();
+    });
+
+    async function loadSession() {
+      try {
+        const res = await fetch("/api/me", {
+          credentials: "include"
+        });
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+        if (!data.loggedIn) return;
+
+        document.getElementById("loginBtn").style.display = "none";
+        document.getElementById("profileBtn").style.display = "flex";
+
+        document.getElementById("profileName").textContent = data.user.global_name || data.user.username;
+        document.getElementById("dropdownName").textContent = data.user.global_name || data.user.username;
+        document.getElementById("dropdownId").textContent = "Discord ID: " + data.user.id;
+        document.getElementById("dropdownId").dataset.userid = data.user.id;
+
+        if (data.user.avatarUrl) {
+          document.getElementById("profileAvatar").src = data.user.avatarUrl;
+        } else {
+          document.getElementById("profileAvatar").src = "https://cdn.discordapp.com/embed/avatars/0.png";
+        }
+
+        if (typeof data.balance === "number") {
+          document.getElementById("balanceBadge").textContent = "$" + data.balance.toFixed(2);
+        }
+
+        if (data.plan && data.plan.active) {
+          document.getElementById("planBadge").textContent = data.plan.name.toUpperCase();
+          document.getElementById("statusText").textContent = "ACTIVE";
+          document.getElementById("statusText").classList.remove("danger");
+          document.getElementById("statusText").classList.add("green");
+          document.getElementById("timeLeftText").textContent = data.plan.remaining || "Active";
+          document.getElementById("expiresText").textContent = data.plan.expiresAt || "--";
+          document.getElementById("currentPlanText").textContent = data.plan.name;
+          document.getElementById("subscriptionBadge").textContent = "ACTIVE";
+          document.getElementById("subscriptionBadge").style.color = "#18d27e";
+          document.getElementById("subscriptionBadge").style.background = "rgba(24,210,126,0.14)";
+          document.getElementById("remainingText").textContent = data.plan.remaining || "0h 0m";
+        }
+
+        if (typeof data.spent === "number") {
+          document.getElementById("spentText").textContent = "$" + data.spent.toFixed(2);
+        }
+
+        if (Array.isArray(data.orders)) {
+          const tbody = document.getElementById("ordersTableBody");
+          tbody.innerHTML = "";
+          data.orders.forEach(order => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${order.type}</td>
+              <td>${order.method}</td>
+              <td class="green">${order.status}</td>
+              <td>$${Number(order.amount).toFixed(2)}</td>
+              <td>${order.id}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      } catch (err) {
+        console.log("Session not loaded.");
+      }
+    }
+
+    loadSession();
+  </script>
 </body>
 </html>
