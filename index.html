@@ -31,6 +31,7 @@ h1 {
     text-decoration: none;
     display: inline-block;
     margin-top: 20px;
+    cursor: pointer;
 }
 
 .section {
@@ -44,6 +45,11 @@ h1 {
     border-radius: 10px;
 }
 
+/* Botões de pagamento */
+.payment-btn {
+    background: #ff8c00;
+    margin: 10px;
+}
 </style>
 </head>
 
@@ -52,9 +58,10 @@ h1 {
 <header>
 <h1>🦁 Lion Notifier</h1>
 <p>Auto server detection for Roblox brainrot hunting</p>
-<a class="btn" href="https://discord.com/login" target="_blank">
-Login with Discord
-</a>
+
+<!-- Botão de login avançado Discord -->
+<a class="btn" id="discord-login" href="#">Login with Discord</a>
+<p id="user-info"></p>
 </header>
 
 <div class="section">
@@ -63,19 +70,54 @@ Login with Discord
 <div class="card">
 <h3>Basic</h3>
 <p>$5</p>
+<button class="btn payment-btn" onclick="payStripe('basic')">Pay with Card</button>
+<a class="btn payment-btn" href="https://commerce.coinbase.com/checkout/SUA_CHAVE_BASIC" target="_blank">Pay with Crypto</a>
 </div>
 
 <div class="card">
 <h3>Pro</h3>
 <p>$10</p>
+<button class="btn payment-btn" onclick="payStripe('pro')">Pay with Card</button>
+<a class="btn payment-btn" href="https://commerce.coinbase.com/checkout/SUA_CHAVE_PRO" target="_blank">Pay with Crypto</a>
 </div>
 
 <div class="card">
 <h3>Ultimate</h3>
 <p>$20</p>
+<button class="btn payment-btn" onclick="payStripe('ultimate')">Pay with Card</button>
+<a class="btn payment-btn" href="https://commerce.coinbase.com/checkout/SUA_CHAVE_ULTIMATE" target="_blank">Pay with Crypto</a>
 </div>
 
 </div>
+
+<script>
+  // ==== LOGIN DISCORD OAUTH2 ====
+  const clientId = "SEU_CLIENT_ID_AQUI"; // Coloque seu Client ID
+  const redirectUri = encodeURIComponent("https://seusite.github.io"); // Troque pelo seu site
+  const scope = "identify email";
+  const discordLoginUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}`;
+
+  document.getElementById("discord-login").href = discordLoginUrl;
+
+  // Captura o token do Discord
+  window.onload = () => {
+    const hash = window.location.hash;
+    if(hash) {
+      const params = new URLSearchParams(hash.replace("#", "?"));
+      const token = params.get("access_token");
+      if(token) {
+        document.getElementById("user-info").innerText = "Login realizado com sucesso!";
+        console.log("Discord Token:", token);
+        // Aqui você pode usar o token para chamar a API Discord e pegar nome/email
+      }
+    }
+  };
+
+  // ==== BOTÃO DE PAGAMENTO SIMULADO STRIPE ====
+  function payStripe(plan) {
+    alert(`Botão Stripe clicado para o plano: ${plan}. Para pagamentos reais, você precisa de um backend Stripe.`);
+  }
+</script>
 
 </body>
 </html>
