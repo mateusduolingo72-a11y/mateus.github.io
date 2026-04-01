@@ -7,7 +7,7 @@ app.use(express.json());
 app.use(cors());
 
 // 🔒 USE CHAVE DE TESTE (sk_test_)
-const stripe = new Stripe("sk_test_51THExkRvmbU87f0WtYwUoGxLmUcJzpdIVb2kn0PgjwugVf9PdMaRdUDt9cihT4j4Tq0PxNFwGH5tXq0TIZ7fv4AG0045Aj6xci");
+const stripe = new Stripe("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");
 
 app.post("/create-checkout", async (req, res) => {
   const { amount, type, hours } = req.body;
