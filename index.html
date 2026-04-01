@@ -45,7 +45,6 @@ h1 {
     border-radius: 10px;
 }
 
-/* Botões de pagamento */
 .payment-btn {
     background: #ff8c00;
     margin: 10px;
@@ -92,23 +91,31 @@ h1 {
 
 <script>
   // ==== LOGIN DISCORD OAUTH2 ====
-  const clientId = "SEU_CLIENT_ID_AQUI"; // Coloque seu Client ID
-  const redirectUri = encodeURIComponent("https://seusite.github.io"); // Troque pelo seu site
+  const clientId = "SEU_CLIENT_ID_AQUI"; // coloque o Client ID do seu app Discord
+  const redirectUri = encodeURIComponent(window.location.href.split('#')[0]); // redireciona para a mesma página
   const scope = "identify email";
   const discordLoginUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}`;
 
   document.getElementById("discord-login").href = discordLoginUrl;
 
-  // Captura o token do Discord
+  // Captura o token do Discord e pega dados do usuário
   window.onload = () => {
     const hash = window.location.hash;
     if(hash) {
       const params = new URLSearchParams(hash.replace("#", "?"));
       const token = params.get("access_token");
       if(token) {
-        document.getElementById("user-info").innerText = "Login realizado com sucesso!";
-        console.log("Discord Token:", token);
-        // Aqui você pode usar o token para chamar a API Discord e pegar nome/email
+        // Pega dados do usuário com o token
+        fetch("https://discord.com/api/users/@me", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+        .then(res => res.json())
+        .then(user => {
+          document.getElementById("user-info").innerText = `Olá, ${user.username}#${user.discriminator} (ID: ${user.id})`;
+        })
+        .catch(err => console.error(err));
       }
     }
   };
