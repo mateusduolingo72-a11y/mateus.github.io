@@ -1107,5 +1107,39 @@
 
     loadSession();
   </script>
+  <script>
+const clientId = "SEU_CLIENT_ID_AQUI"; // coloque seu Client ID aqui
+const redirectUri = encodeURIComponent(window.location.href.split('#')[0]);
+const scope = "identify";
+
+const url = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}`;
+
+document.getElementById("discord-login").href = url;
+
+// pegar token da URL
+const hash = window.location.hash;
+if (hash) {
+  const params = new URLSearchParams(hash.replace("#", "?"));
+  const token = params.get("access_token");
+
+  if (token) {
+    fetch("https://discord.com/api/users/@me", {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    .then(res => res.json())
+    .then(user => {
+      document.getElementById("user-info").innerText =
+        `Logado como: ${user.username} (ID: ${user.id})`;
+
+      const avatarUrl = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
+      const avatar = document.getElementById("avatar");
+      avatar.src = avatarUrl;
+      avatar.style.display = "block";
+    });
+  }
+}
+</script>
 </body>
 </html>
